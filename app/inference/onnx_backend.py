@@ -31,7 +31,10 @@ class OnnxBackend(InferenceBackend):
         try:
             import onnxruntime as ort
         except ImportError as exc:
-            raise RuntimeError("未安装 ONNX Runtime，请执行: uv sync --extra onnx") from exc
+            raise RuntimeError(
+                "ONNX Runtime 未安装或无法加载，请执行 `uv sync --all-extras`；"
+                f"原始错误: {exc}"
+            ) from exc
         path = Path(config.get("model", ""))
         if not path.is_file():
             raise RuntimeError(f"ONNX 模型不存在: {path}")
@@ -43,7 +46,16 @@ class OnnxBackend(InferenceBackend):
         input_meta = self.session.get_inputs()[0]
         self.input_name = input_meta.name
         shape = input_meta.shape
-        self.input_size = (int(shape[3] or 640), int(shape[2] or 640))
+        configured_size = config.get("input_size")
+        if configured_size is not None:
+            if len(configured_size) != 2 or any(int(item) <= 0 for item in configured_size):
+                raise RuntimeError("ONNX input_size 必须是两个正整数，例如 [640, 640]")
+            self.input_size = tuple(map(int, configured_size))
+        else:
+            # 动态 ONNX 的维度可能是 "height"/"width" 等符号名称，不能直接转成整数。
+            width = shape[3] if isinstance(shape[3], int) and shape[3] > 0 else 640
+            height = shape[2] if isinstance(shape[2], int) and shape[2] > 0 else 640
+            self.input_size = (width, height)
 
     def infer(self, frame: np.ndarray) -> tuple[list[Detection], PerformanceMetrics]:
         if self.session is None:

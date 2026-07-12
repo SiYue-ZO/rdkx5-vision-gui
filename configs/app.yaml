@@ -1,4 +1,4 @@
-algorithm: passthrough
+algorithm: yolo
 algorithm_params:
   passthrough: {}
   edge:
@@ -14,12 +14,11 @@ algorithm_params:
     v_max: 255
     min_area: 300
   yolo:
-    confidence: 0.25
+    confidence: 0.5
     show_center: true
 inference:
-  backend: mock
-  label: mock-target
-  model: ''
+  backend: onnxruntime
+  model: models/yolo11n.onnx
   input_size:
   - 640
   - 640

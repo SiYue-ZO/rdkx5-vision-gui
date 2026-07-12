@@ -1,11 +1,11 @@
-active: mock
+active: onnx-example
 models:
   mock:
     backend: mock
     label: mock-target
   onnx-example:
     backend: onnxruntime
-    model: models/model.onnx
+    model: models/yolo11n.onnx
     labels: []
     confidence: 0.25
     nms: 0.45

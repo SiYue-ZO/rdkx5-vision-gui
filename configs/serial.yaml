@@ -1,0 +1,11 @@
+port: ""
+baudrate: 115200
+bytesize: 8
+parity: N
+stopbits: 1
+timeout: 0.05
+presets:
+  - name: ping
+    mode: hex
+    data: "AA 55 00 00 01 C1 C0"
+

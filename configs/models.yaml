@@ -1,0 +1,17 @@
+active: mock
+models:
+  mock:
+    backend: mock
+    label: mock-target
+  onnx-example:
+    backend: onnxruntime
+    model: models/model.onnx
+    labels: []
+    confidence: 0.25
+    nms: 0.45
+  rdk-example:
+    backend: rdk-hbm
+    model: models/model.bin
+    input_size: [640, 640]
+    labels: []
+

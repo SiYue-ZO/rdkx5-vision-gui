@@ -1,0 +1,27 @@
+algorithm: passthrough
+algorithm_params:
+  passthrough: {}
+  edge:
+    low: 60
+    high: 150
+    blur: 3
+  hsv_target:
+    h_min: 0
+    h_max: 179
+    s_min: 80
+    s_max: 255
+    v_min: 80
+    v_max: 255
+    min_area: 300
+  yolo:
+    confidence: 0.25
+    show_center: true
+inference:
+  backend: mock
+  label: mock-target
+  model: ''
+  input_size:
+  - 640
+  - 640
+  confidence: 0.25
+  nms: 0.45

@@ -14,4 +14,3 @@ models:
     model: models/model.bin
     input_size: [640, 640]
     labels: []
-

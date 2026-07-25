@@ -213,6 +213,11 @@ class MainWindow(QMainWindow):
             inference_config = dict(self.config.get("inference", {"backend": "mock"}))
             try:
                 inference_config["backend_name"] = inference_config.get("backend", "mock")
+                logging.getLogger(__name__).info(
+                    "Initializing YOLO backend=%s model=%s",
+                    inference_config["backend_name"],
+                    inference_config.get("model", "<none>"),
+                )
                 backend = create_backend(inference_config)
                 algorithm_config = {**inference_config, "backend": backend}
             except Exception as exc:

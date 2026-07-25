@@ -18,7 +18,7 @@ uv run python main.py
 3. 运行 `uv run rdkx5-probe`，保存 `environment-report.json`。
 4. 运行 `uv run python main.py`，验证 Qt/HDMI 显示。
 5. 用官方示例和 `hrt_model_exec model_info/perf` 验证 `.bin`。
-6. 按模型的输出节点实现/配置 decoder，然后切换 `rdk-hbm` 后端。
+6. 对于 Model Zoo 格式的 YOLO Detect `.bin`，配置 `rdk-hbm`、`classes_num`、`labels`、`reg: 16` 与 `strides: [8, 16, 32]` 即可；该后端已内置 NV12 输入、DFL 解码和 NMS。其他输出协议（分割、姿态或非 Model Zoo 导出的模型）需要单独适配。
 7. MIPI 相机若使用 `libsrcampy`，确认相机 ID、分辨率、传感器配置与 BSP 一致。
 
 `uv` 创建的隔离环境默认看不到 apt 安装的系统包时，可在板端创建允许 system-site-packages 的环境，或使用 RDK 软件源对应的 Python 解释器。不要用 PyPI wheel 覆盖 BSP 自带的 `hbm_runtime`。

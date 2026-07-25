@@ -64,7 +64,7 @@ def collect() -> dict[str, Any]:
         report["video_devices"] = [str(item) for item in Path("/dev").glob("video*")]
         report["serial_devices"] = [
             str(item)
-            for pattern in ("ttyUSB*", "ttyACM*", "ttyS*")
+            for pattern in ("ttyUSB*", "ttyACM*", "ttyS*", "ttyAMA*", "ttyTHS*", "ttyHS*")
             for item in Path("/dev").glob(pattern)
         ]
         report["hrt_model_exec"] = command_output(["hrt_model_exec", "--help"])

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
+from pathlib import Path
 
 from app.common.logging import configure_logging
 
@@ -15,6 +17,18 @@ def _preload_optional_runtimes() -> None:
         pass
 
 
+def _configure_frozen_qt_plugins() -> None:
+    """Prefer PyQt's platform plugins over OpenCV's bundled Qt plugins."""
+    if not getattr(sys, "frozen", False):
+        return
+    bundle_root = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
+    plugin_root = bundle_root / "PyQt5" / "Qt5" / "plugins"
+    platform_plugins = plugin_root / "platforms"
+    if platform_plugins.is_dir():
+        os.environ["QT_PLUGIN_PATH"] = str(plugin_root)
+        os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = str(platform_plugins)
+
+
 def main() -> int:
     configure_logging()
     _preload_optional_runtimes()
@@ -24,6 +38,7 @@ def main() -> int:
     except Exception as exc:
         logging.getLogger(__name__).critical("GUI 初始化失败: %s", exc)
         return 2
+    _configure_frozen_qt_plugins()
     app = QApplication(sys.argv)
     app.setApplicationName("RDK X5 Vision GUI")
 

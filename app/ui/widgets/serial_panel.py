@@ -30,6 +30,7 @@ class SerialPanel(QWidget):
         layout = QVBoxLayout(self)
         controls = QGridLayout()
         self.port = QComboBox()
+        self.port.setEditable(True)
         self.baud = QComboBox()
         self.baud.addItems(["9600", "115200", "230400", "460800", "921600"])
         self.baud.setCurrentText("115200")
@@ -74,17 +75,19 @@ class SerialPanel(QWidget):
         self.refresh_ports()
 
     def refresh_ports(self) -> None:
-        current = self.port.currentData()
+        current = self.port.currentData() or self.port.currentText().strip()
         self.port.clear()
         for device, description in SerialTransport.ports():
             self.port.addItem(f"{device} — {description}", device)
         index = self.port.findData(current)
         if index >= 0:
             self.port.setCurrentIndex(index)
+        elif current:
+            self.port.setEditText(current)
 
     def _toggle(self) -> None:
         if self.open_button.text() == "打开":
-            device = self.port.currentData()
+            device = self.port.currentData() or self.port.currentText().strip()
             if device:
                 self.open_requested.emit(SerialConfig(device, int(self.baud.currentText())))
         else:
@@ -113,7 +116,8 @@ class SerialPanel(QWidget):
             self.send_timer.stop()
 
     def append(self, text: str) -> None:
-        self.output.appendPlainText(f"[{datetime.now():%H:%M:%S.%f}] {text}"[:-3])
+        timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+        self.output.appendPlainText(f"[{timestamp}] {text}")
 
     def append_received(self, data: bytes) -> None:
         text = (

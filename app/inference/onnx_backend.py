@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import time
-from pathlib import Path
 from typing import Any
 
 import cv2
 import numpy as np
 
 from app.common.models import Detection, PerformanceMetrics
+from app.common.runtime_paths import resolve_data_file
 from app.inference.base import InferenceBackend
 from app.inference.utils import letterbox, nms
 
@@ -35,7 +35,7 @@ class OnnxBackend(InferenceBackend):
                 "ONNX Runtime 未安装或无法加载，请执行 `uv sync --all-extras`；"
                 f"原始错误: {exc}"
             ) from exc
-        path = Path(config.get("model", ""))
+        path = resolve_data_file(config.get("model", ""))
         if not path.is_file():
             raise RuntimeError(f"ONNX 模型不存在: {path}")
         self.confidence = float(config.get("confidence", 0.25))

@@ -11,6 +11,14 @@ models:
     nms: 0.45
   rdk-example:
     backend: rdk-hbm
-    model: models/model.bin
+    model: models/yolo11n_bayese_640x640_nv12.bin
     input_size: [640, 640]
-    labels: []
+    classes_num: 9
+    labels: [apple, avacado, banana, guava, kiwi, mango, orange, peach, pineapple]
+    confidence: 0.25
+    nms: 0.70
+    reg: 16
+    strides: [8, 16, 32]
+    resize_type: 1
+    priority: 0
+    bpu_cores: [0]

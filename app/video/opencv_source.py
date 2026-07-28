@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import platform
 from pathlib import Path
 
 import cv2
@@ -9,17 +10,29 @@ from app.video.base import VideoSource
 
 
 class OpenCVSource(VideoSource):
-    def __init__(self, source: int | str, width: int = 0, height: int = 0, fps: float = 0) -> None:
+    def __init__(
+        self,
+        source: int | str,
+        width: int = 0,
+        height: int = 0,
+        fps: float = 0,
+        backend: int | None = None,
+        fourcc: str = "",
+    ) -> None:
         self.source = source
         self.width = width
         self.height = height
         self.requested_fps = fps
+        self.backend = backend
+        self.fourcc = fourcc
         self.capture: cv2.VideoCapture | None = None
 
     def open(self) -> None:
         self.close()
-        backend = cv2.CAP_DSHOW if isinstance(self.source, int) and hasattr(cv2, "CAP_DSHOW") else 0
+        backend = self.backend if self.backend is not None else _default_backend(self.source)
         self.capture = cv2.VideoCapture(self.source, backend)
+        if self.fourcc and len(self.fourcc) == 4:
+            self.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*self.fourcc))
         if self.width:
             self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
         if self.height:
@@ -28,7 +41,11 @@ class OpenCVSource(VideoSource):
             self.capture.set(cv2.CAP_PROP_FPS, self.requested_fps)
         if not self.capture.isOpened():
             self.close()
-            raise RuntimeError(f"无法打开视频源: {self.source}")
+            raise RuntimeError(
+                f"Cannot open video source {self.source!r} with OpenCV backend {backend}. "
+                "On Linux/RDK, check /dev/video* permissions, whether another process is "
+                "using the camera, and the camera width/height/fps in configs/camera.yaml."
+            )
 
     def read(self) -> tuple[bool, np.ndarray | None]:
         if not self.capture:
@@ -54,6 +71,7 @@ class OpenCVSource(VideoSource):
             return {"source": str(self.source)}
         return {
             "source": str(self.source),
+            "backend": self.capture.get(cv2.CAP_PROP_BACKEND),
             "width": self.capture.get(cv2.CAP_PROP_FRAME_WIDTH),
             "height": self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT),
             "fps": self.fps,
@@ -61,8 +79,16 @@ class OpenCVSource(VideoSource):
 
 
 class CameraSource(OpenCVSource):
-    def __init__(self, device: int = 0, width: int = 0, height: int = 0, fps: float = 0) -> None:
-        super().__init__(device, width, height, fps)
+    def __init__(
+        self,
+        device: int | str = 0,
+        width: int = 0,
+        height: int = 0,
+        fps: float = 0,
+        backend: int | None = None,
+        fourcc: str = "",
+    ) -> None:
+        super().__init__(device, width, height, fps, backend, fourcc)
 
 
 class VideoFileSource(OpenCVSource):
@@ -87,7 +113,7 @@ class ImageSource(VideoSource):
         data = np.fromfile(str(self.path), dtype=np.uint8)
         self.frame = cv2.imdecode(data, cv2.IMREAD_COLOR)
         if self.frame is None:
-            raise RuntimeError(f"无法读取图片: {self.path}")
+            raise RuntimeError(f"Cannot read image: {self.path}")
 
     def read(self) -> tuple[bool, np.ndarray | None]:
         return (self.frame is not None, None if self.frame is None else self.frame.copy())
@@ -98,3 +124,16 @@ class ImageSource(VideoSource):
     @property
     def is_open(self) -> bool:
         return self.frame is not None
+
+
+def _default_backend(source: int | str) -> int:
+    system = platform.system()
+    if system == "Windows" and isinstance(source, int) and hasattr(cv2, "CAP_DSHOW"):
+        return cv2.CAP_DSHOW
+    if system == "Linux" and _looks_like_camera(source) and hasattr(cv2, "CAP_V4L2"):
+        return cv2.CAP_V4L2
+    return cv2.CAP_ANY
+
+
+def _looks_like_camera(source: int | str) -> bool:
+    return isinstance(source, int) or str(source).startswith("/dev/video")

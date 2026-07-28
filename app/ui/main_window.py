@@ -32,7 +32,7 @@ from app.serial.protocol import (
 from app.ui.widgets.parameter_panel import ParameterPanel
 from app.ui.widgets.serial_panel import SerialPanel
 from app.ui.widgets.video_view import VideoView
-from app.video import CameraSource, ImageSource, VideoFileSource
+from app.video import ImageSource, VideoFileSource, build_camera_source
 from app.workers.frame_buffer import LatestFrameBuffer
 from app.workers.inference_worker import InferenceWorker
 from app.workers.recording_worker import RecordingWorker
@@ -201,7 +201,8 @@ class MainWindow(QMainWindow):
             self.start_pipeline(VideoFileSource(path))
 
     def open_camera(self) -> None:
-        self.start_pipeline(CameraSource(0, 1280, 720, 30))
+        camera_config = self.config_manager.load("camera.yaml")
+        self.start_pipeline(build_camera_source(camera_config))
 
     def start_pipeline(self, source) -> None:
         self.stop_pipeline()

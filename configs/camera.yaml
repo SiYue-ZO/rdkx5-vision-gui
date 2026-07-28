@@ -1,7 +1,9 @@
 type: usb
-device: 0
-width: 1280
-height: 720
+device: /dev/video0
+backend: v4l2
+fourcc: MJPG
+width: 640
+height: 480
 fps: 30
 mipi:
   camera_id: 0

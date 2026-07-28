@@ -19,12 +19,12 @@ algorithm_params:
 inference:
   # RDK X5 Model Zoo YOLO Detect .bin (NV12 input, hbm_runtime backend).
   backend: rdk-hbm
-  model: models/yolo11n_bayese_640x640_nv12.bin
+  model: models/yolo11n_steel_ball_bayese_640x640_nv12.bin
   input_size:
   - 640
   - 640
-  classes_num: 9
-  labels: [apple, avacado, banana, guava, kiwi, mango, orange, peach, pineapple]
+  classes_num: 1
+  labels: [steel_ball]
   confidence: 0.25
   nms: 0.70
   reg: 16
